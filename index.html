@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<title>Exoplanets</title>
+<title>Star Wars Planets</title>
 <style>
 
     .group {
         fill: none;
         stroke: #000;
-        stroke-width: 1.5px;
+        stroke-width: 1px;
     }
 
 </style>
 <body>
-<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-
     var color = d3.scaleQuantize()
             .range(["#156b87", "#876315", "#543510", "#872815"]);
 
@@ -32,7 +31,7 @@
         var planets = data.filter(function(d) { return d.distance === 0; }),
                 exoplanets = data.filter(function(d) { return d.distance !== 0; });
 
-        color.domain(d3.extent(data, function(d) { return d.size; }));
+        color.domain(d3.extent(data, function(d) { return d.population / d.size; }));
 
         var root = d3.hierarchy({children: [{children: planets}].concat(exoplanets)})
                 .sum(function(d) { return d.size * d.size; })
@@ -56,8 +55,11 @@
                 .append("title")
                 .text(function(d) {
                     return d.data.name
-                            + "\nplanet radius: " + d.data.size + " EU"
-                            + "\nstar distance: " + (isNaN(d.data.distance) ? "N/A" : d.data.distance + " pc");
+                            + "\nplanet diameter: " + d.data.size + " KM"
+                            + "\nplanet orbital period: " + d.data.orbital_period + " days"
+                            + "\nplanet rotation period: " + d.data.rotation_period + " hours"
+                            + "\nplanet climate: " + d.data.climate
+                            + "\nplanet terrain: " + d.data.terrain;
                 });
     });
 
@@ -68,3 +70,4 @@
     }
 
 </script>
+</body>
