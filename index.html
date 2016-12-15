@@ -1,73 +1,82 @@
 <!DOCTYPE html>
+
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<title>Star Wars Planets</title>
+<title>The Planets of Star Wars, a Data-Driven Look</title>
+
 <style>
 
-    .group {
-        fill: none;
-        stroke: #000;
-        stroke-width: 1px;
-    }
+.group {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1px;
+}
 
 </style>
 <body>
+
 <script src="https://d3js.org/d3.v4.min.js"></script>
+
 <script>
-    var color = d3.scaleQuantize()
-            .range(["#156b87", "#876315", "#543510", "#872815"]);
 
-    var size = 960;
+var dat;
 
-    var pack = d3.pack()
-            .size([size, size])
-            .padding(5);
+var color = d3.scaleLinear()
+  .range(["#156b87", "#872815"]);
 
-    var svg = d3.select("body").append("svg")
-            .attr("width", size)
-            .attr("height", size);
+var size = 960;
 
-    d3.csv("csvPlanets.csv", type, function(error, data) {
-        var planets = data.filter(function(d) { return d.distance === 0; }),
-                exoplanets = data.filter(function(d) { return d.distance !== 0; });
+var pack = d3.pack()
+  .size([size, size])
+  .padding(25);
 
-        color.domain(d3.extent(data, function(d) { return d.population / d.size; }));
+var svg = d3.select("body").append("svg")
+  .attr("width", size)
+  .attr("height", size);
 
-        var root = d3.hierarchy({children: [{children: planets}].concat(exoplanets)})
-                .sum(function(d) { return d.size * d.size; })
-                .sort(function(a, b) {
-                    return !a.children - !b.children
-                            || isNaN(a.data.distance) - isNaN(b.data.distance)
-                            || a.data.distance - b.data.distance;
-                });
+d3.csv("gdocs.csv", type, function(error, data) {
+  dat = data;
+  var knownplanets = data.filter(function(d) { return d.known === 1; }),
+    outerplanets = data.filter(function(d) { return d.known === 0; });
 
-        pack(root);
+  color.domain(d3.extent(data, function(d) { return d.population; }));
 
-        svg.selectAll("circle")
-                .data(root.descendants().slice(1))
-                .enter().append("circle")
-                .attr("r", function(d) { return d.r; })
-                .attr("cx", function(d) { return d.x; })
-                .attr("cy", function(d) { return d.y; })
-                .classed("group", function(d) { return d.children; })
-                .filter(function(d) { return d.data; })
-                .style("fill", function(d) { return color(d.data.population / d.data.size); })
-                .append("title")
-                .text(function(d) {
-                    return d.data.name
-                            + "\nplanet diameter: " + d.data.size + " KM"
-                            + "\nplanet orbital period: " + d.data.orbital_period + " days"
-                            + "\nplanet rotation period: " + d.data.rotation_period + " hours"
-                            + "\nplanet climate: " + d.data.climate
-                            + "\nplanet terrain: " + d.data.terrain;
-                });
+  var root = d3.hierarchy({children: [{children: knownplanets}].concat(outerplanets)})
+    .sum(function(d) { return d.size * d.size; })
+    .sort(function(a, b) {
+    return !a.children - !b.children
+      || isNaN(a.data.distance) - isNaN(b.data.distance)
+      || a.data.distance - b.data.distance;
     });
 
-    function type(d) {
-        d.size = +d.size;
-        d.distance = d.distance ? +d.distance : NaN;
-        return d;
-    }
+  pack(root);
+
+  svg.selectAll("circle")
+    .data(root.descendants().slice(1))
+    .enter().append("circle")
+    .attr("r", function(d) { return d.r; })
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .classed("group", function(d) { return d.children; })
+    .filter(function(d) { return d.data; })
+    .style("fill", function(d) { return color(d.data.population / d.data.size); })
+    .append("title")
+    .text(function(d) {
+    return d.data.name
+      + "\nplanet diameter: " + d.data.size + " KM"
+      + "\nplanet orbital period: " + d.data.orbital_period + " days"
+      + "\nplanet rotation period: " + d.data.rotation_period + " hours"
+      + "\nplanet climate: " + d.data.climate
+      + "\nplanet terrain: " + d.data.terrain;
+    });
+});
+
+function type(d) {
+  d.size = +d.size;
+  d.known = +d.known;
+  d.distance = d.distance ? +d.distance : NaN;
+  return d;
+}
 
 </script>
 </body>
