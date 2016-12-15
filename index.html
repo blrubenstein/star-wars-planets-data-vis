@@ -82,19 +82,26 @@ d3.csv("swplanets.csv", type, function(error, data) {
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; })
     .classed("group", function(d) { return d.children; })
+    .classed("planet", function(d) { return !d.children; })
     .filter(function(d) { return d.data; })
     .style("fill", function(d) { 
-      return color(d.data.population); 
+      return d.data.name ? color(d.data.population) : 'white'; 
     })
     .style("stroke", function(d) { 
-      return d.name === "Tatooine" ? 'yellowgreen' : null; 
+      if( d.children )
+        return 'black';
+      if( d.data.name === "Tatooine" )
+        return 'yellowgreen';
     })
     .style("stroke-width", '5px')
     .on('mouseover', function(d) {
+      d3.selectAll('.planet').style('stroke', null)
+      if( d.children ) return;
       d3.select(this).style('stroke', 'yellowgreen');
       updateInfo(d);
     })
     .on('mouseout', function(d) {
+      if( d.children ) return;
       d3.select(this).style('stroke', null);
     });
 
