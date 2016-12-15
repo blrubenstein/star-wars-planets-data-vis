@@ -6,11 +6,20 @@
 
 <style>
 
+body {
+  font-family: sans-serif;
+}
+
 .group {
   fill: none;
 }
 
+#intro {
+  width: 35%;
+}
+
 #container {
+  margin-top: -128px;
   display: flex;
   align-items: center;
 }
@@ -30,6 +39,13 @@
 </style>
 <body>
 
+<div id="intro">
+  <h1>The Planets of Star Wars: A Data-Driven Look</h1>
+  <p>
+   In honor of star wars...
+  </p>
+</div>
+
 <div id="container">
   <div id="info">
   </div>
@@ -43,10 +59,9 @@
 
 <script>
 
-var dat;
-
-var color = d3.scaleLinear()
-  .range(["#156b87", "#872815"]);
+var color = d3.scaleLog()
+  .range(["brown", "steelblue"])
+  .interpolate(d3.interpolateCubehelix.gamma(3));
 
 var size = 960;
 
@@ -59,11 +74,10 @@ var svg = d3.select("#vis").append("svg")
   .attr("height", size);
 
 d3.csv("swplanets.csv", type, function(error, data) {
-  dat = data;
   var knownplanets = data.filter(function(d) { return d.known === 1; }),
     outerplanets = data.filter(function(d) { return d.known === 0; });
 
-  color.domain(d3.extent(data, function(d) { return d.population; }));
+  color.domain(d3.extent(data, function(d) { return d.population ? d.population/1000 : 1; }));
 
   var root = d3.hierarchy({children: [{children: knownplanets}].concat(outerplanets)})
     .sum(function(d) { return d.size * d.size; })
@@ -85,7 +99,7 @@ d3.csv("swplanets.csv", type, function(error, data) {
     .classed("planet", function(d) { return !d.children; })
     .filter(function(d) { return d.data; })
     .style("fill", function(d) { 
-      return d.data.name ? color(d.data.population) : 'white'; 
+      return d.data.name ? color(d.data.population/1000) : 'white'; 
     })
     .style("stroke", function(d) { 
       if( d.children )
