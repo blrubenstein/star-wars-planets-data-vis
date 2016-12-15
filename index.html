@@ -156,7 +156,7 @@ function updateInfo(d) {
   if(!d.data) d.data = d; 
   d3.select('#info').html( "<h1>" + d.data.name + "</h1>"
       + "<br>planet diameter: " + d.data.size + " KM"
-      + "<br>planet population: " + d.data.population
+      + "<br>planet population: " + (d.data.population ? d.data.population : "unknown")
       + "<br>planet orbital period: " + d.data.orbital_period + " days"
       + "<br>planet rotation period: " + d.data.rotation_period + " hours"
       + "<br>planet climate: " + d.data.climate
