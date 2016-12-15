@@ -12,8 +12,8 @@ var server = http.createServer (function (req, res) {
         case '/index.html':
             sendFile(res, 'index.html')
             break
-        case '/csvPlanets.csv':
-            sendFile(res, 'csvPlanets.csv', 'text/csv');
+        case '/swplanets.csv':
+            sendFile(res, 'swplanets.csv', 'text/csv');
             break;
         default:
             res.end('404 not found')

@@ -1,93 +1,134 @@
 <!DOCTYPE html>
+
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<title>Star Wars Planets</title>
+<title>The Planets of Star Wars, a Data-Driven Look</title>
+
 <style>
 
-    .group {
-        fill: none;
-        stroke: #000;
-        stroke-width: 1px;
-    }
+.group {
+  fill: none;
+}
+
+#container {
+  display: flex;
+  align-items: center;
+}
+
+#info {
+  float: left;
+  width: 25%;
+  text-align: right;
+}
+
+#vis {
+  float: left;
+  width: 75%;
+}
+
 
 </style>
 <body>
-<div id="planet-info-div"></div>
+
+
+<div id="container">
+  <div id="info">
+  </div>
+  
+  <div id="vis">
+  </div>
+</div>
+
+
 <script src="https://d3js.org/d3.v4.min.js"></script>
+
 <script>
-    var color = function(population, size){
-        var value = 0;
-        if(population == "Unknown" || size == "Unknown"){
-            console.log("Something is unknown");
-            value = 0;
-        } else {
-            value = population / size;
-        }
-        if(value < 1000){
-            return "#200000"
-        } else if (value < 10000){
-            return "#400000"
-        } else if (value < 100000){
-            return "600000"
-        } else if (value < 1000000){
-            return "#800000"
-        } else {
-            return "#a00000"
-        }
-    };
-
-    var size = 960;
-
-    var pack = d3.pack()
-            .size([size, size])
-            .padding(5);
-
-    var svg = d3.select("body").append("svg")
-            .attr("width", size)
-            .attr("height", size);
 
 
+var dat;
 
-    d3.csv("csvPlanets.csv", type, function(error, data) {
-        var planets = data.filter(function(d) { return d.distance === 0; }),
-                exoplanets = data.filter(function(d) { return d.distance !== 0; });
+var color = d3.scaleLinear()
+  .range(["#156b87", "#872815"]);
 
-        var root = d3.hierarchy({children: [{children: planets}].concat(exoplanets)})
-                .sum(function(d) { return d.size * d.size; })
-                .sort(function(a, b) {
-                    return !a.children - !b.children
-                            || isNaN(a.data.distance) - isNaN(b.data.distance)
-                            || a.data.distance - b.data.distance;
-                });
+var size = 960;
 
-        pack(root);
+var pack = d3.pack()
+  .size([size, size])
+  .padding(25);
 
-        svg.selectAll("circle")
-                .data(root.descendants().slice(1))
-                .enter().append("circle")
-                .attr("r", function(d) { return d.r; })
-                .attr("cx", function(d) { return d.x; })
-                .attr("cy", function(d) { return d.y; })
-                .classed("group", function(d) { return d.children; })
-                .filter(function(d) { return d.data; })
-                .style("fill", function(d) { return color(d.data.population, d.data.size); })
-                .append("title")
-                .text(function(d) {
-                    return d.data.name
-                            + "\nplanet diameter: " + d.data.size + " KM"
-                            + "\nplanet population: " + d.data.population
-                            + "\nplanet orbital period: " + d.data.orbital_period + " days"
-                            + "\nplanet rotation period: " + d.data.rotation_period + " hours"
-                            + "\nplanet climate: " + d.data.climate
-                            + "\nplanet terrain: " + d.data.terrain;
-                });
+var svg = d3.select("#vis").append("svg")
+  .attr("width", size)
+  .attr("height", size);
+
+d3.csv("swplanets.csv", type, function(error, data) {
+  dat = data;
+  var knownplanets = data.filter(function(d) { return d.known === 1; }),
+    outerplanets = data.filter(function(d) { return d.known === 0; });
+
+  color.domain(d3.extent(data, function(d) { return d.population; }));
+
+  var root = d3.hierarchy({children: [{children: knownplanets}].concat(outerplanets)})
+    .sum(function(d) { return d.size * d.size; })
+    .sort(function(a, b) {
+    return !a.children - !b.children
+      || isNaN(a.data.size) - isNaN(b.data.size)
+      || a.data.size - b.data.size;
     });
 
-    function type(d) {
-        d.size = +d.size;
-        d.distance = d.distance ? +d.distance : NaN;
-        return d;
-    }
+  pack(root);
+
+  svg.selectAll("circle")
+    .data(root.descendants().slice(1))
+    .enter().append("circle")
+    .attr("r", function(d) { return d.r; })
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .classed("group", function(d) { return d.children; })
+    .classed("planet", function(d) { return !d.children; })
+    .filter(function(d) { return d.data; })
+    .style("fill", function(d) { 
+      return d.data.name ? color(d.data.population) : 'white'; 
+    })
+    .style("stroke", function(d) { 
+      if( d.children )
+        return 'black';
+      if( d.data.name === "Tatooine" )
+        return 'yellowgreen';
+    })
+    .style("stroke-width", '5px')
+    .on('mouseover', function(d) {
+      d3.selectAll('.planet').style('stroke', null)
+      if( d.children ) return;
+      d3.select(this).style('stroke', 'yellowgreen');
+      updateInfo(d);
+    })
+    .on('mouseout', function(d) {
+      if( d.children ) return;
+      d3.select(this).style('stroke', null);
+    });
+
+
+  data.filter( function(d) { return d.name === "Tatooine"; } ).map(updateInfo)
+});
+
+function type(d) {
+  d.size = +d.size;
+  d.known = +d.known;
+  d.distance = d.distance ? +d.distance : NaN;
+  return d;
+}
+
+function updateInfo(d) {
+  if(!d.data) d.data = d; 
+  d3.select('#info').html( "<h1>" + d.data.name + "</h1>"
+      + "<br>planet diameter: " + d.data.size + " KM"
+      + "<br>planet orbital period: " + d.data.orbital_period + " days"
+      + "<br>planet rotation period: " + d.data.rotation_period + " hours"
+      + "<br>planet climate: " + d.data.climate
+      + "<br>planet terrain: " + d.data.terrain
+  );
+}
+
 
 </script>
 </body>
