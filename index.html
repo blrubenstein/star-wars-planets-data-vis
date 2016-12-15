@@ -10,6 +10,11 @@ body {
   font-family: sans-serif;
 }
 
+span {
+  -webkit-text-stroke: 1px black;
+  font-weight: bold;
+}
+
 .group {
   fill: none;
 }
@@ -19,7 +24,7 @@ body {
 }
 
 #container {
-  margin-top: -128px;
+  margin-top: -300px;
   display: flex;
   align-items: center;
 }
@@ -35,6 +40,10 @@ body {
   width: 75%;
 }
 
+footer {
+  text-align: right;
+}
+
 
 </style>
 <body>
@@ -42,8 +51,17 @@ body {
 <div id="intro">
   <h1>The Planets of Star Wars: A Data-Driven Look</h1>
   <p>
-   In honor of star wars...
+  To celebrate the upcoming release of Rogue One, we created a data-driven look of the planets in the Star Wars universe.
   </p>
+  <p>
+  We adapted <a href="https://bl.ocks.org/mbostock/3007180">Mike Bostock's Exoplanets code</a>, and used data from <a href="http://starwarsgalaxy.co/">nclud's Star Wars Galaxy interactive.</a> The source is <a href="https://github.com/blrubenstein/star-wars-planets-data-vis">GitHub</a>.
+  </p>
+  <ul>
+    <li>Population is mapped from <span style="color:#B7A17E">Low</span> to <span style="color:#AD0E12">High</span>, with Unknown populations as <span>Black</span>.</li>
+    <li>Circle size is mapped from to planet size.</li>
+    <li>Some of the well-known planets are in the center ring.</li>
+  </ul>
+</div>
 </div>
 
 <div id="container">
@@ -54,13 +72,17 @@ body {
   </div>
 </div>
 
+<footer>
+  By <a href="">X</a>, <a href="">Y</a>, and <a href="http://twitter.com/laneharrison">Lane Harrison</a>.
+</footer>
+
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 
 <script>
 
 var color = d3.scaleLog()
-  .range(["brown", "steelblue"])
+  .range(["#B7A17E", "#AD0E12"])
   .interpolate(d3.interpolateCubehelix.gamma(3));
 
 var size = 960;
