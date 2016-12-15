@@ -8,12 +8,36 @@
 
 .group {
   fill: none;
-  stroke: #000;
-  stroke-width: 1px;
 }
+
+#container {
+  display: flex;
+  align-items: center;
+}
+
+#info {
+  float: left;
+  width: 25%;
+  text-align: right;
+}
+
+#vis {
+  float: left;
+  width: 75%;
+}
+
 
 </style>
 <body>
+
+<div id="container">
+  <div id="info">
+  </div>
+  
+  <div id="vis">
+  </div>
+</div>
+
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 
@@ -30,11 +54,11 @@ var pack = d3.pack()
   .size([size, size])
   .padding(25);
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#vis").append("svg")
   .attr("width", size)
   .attr("height", size);
 
-d3.csv("gdocs.csv", type, function(error, data) {
+d3.csv("swplanets.csv", type, function(error, data) {
   dat = data;
   var knownplanets = data.filter(function(d) { return d.known === 1; }),
     outerplanets = data.filter(function(d) { return d.known === 0; });
@@ -45,8 +69,8 @@ d3.csv("gdocs.csv", type, function(error, data) {
     .sum(function(d) { return d.size * d.size; })
     .sort(function(a, b) {
     return !a.children - !b.children
-      || isNaN(a.data.distance) - isNaN(b.data.distance)
-      || a.data.distance - b.data.distance;
+      || isNaN(a.data.size) - isNaN(b.data.size)
+      || a.data.size - b.data.size;
     });
 
   pack(root);
@@ -59,16 +83,23 @@ d3.csv("gdocs.csv", type, function(error, data) {
     .attr("cy", function(d) { return d.y; })
     .classed("group", function(d) { return d.children; })
     .filter(function(d) { return d.data; })
-    .style("fill", function(d) { return color(d.data.population / d.data.size); })
-    .append("title")
-    .text(function(d) {
-    return d.data.name
-      + "\nplanet diameter: " + d.data.size + " KM"
-      + "\nplanet orbital period: " + d.data.orbital_period + " days"
-      + "\nplanet rotation period: " + d.data.rotation_period + " hours"
-      + "\nplanet climate: " + d.data.climate
-      + "\nplanet terrain: " + d.data.terrain;
+    .style("fill", function(d) { 
+      return color(d.data.population); 
+    })
+    .style("stroke", function(d) { 
+      return d.name === "Tatooine" ? 'yellowgreen' : null; 
+    })
+    .style("stroke-width", '5px')
+    .on('mouseover', function(d) {
+      d3.select(this).style('stroke', 'yellowgreen');
+      updateInfo(d);
+    })
+    .on('mouseout', function(d) {
+      d3.select(this).style('stroke', null);
     });
+
+
+  data.filter( function(d) { return d.name === "Tatooine"; } ).map(updateInfo)
 });
 
 function type(d) {
@@ -77,6 +108,18 @@ function type(d) {
   d.distance = d.distance ? +d.distance : NaN;
   return d;
 }
+
+function updateInfo(d) {
+  if(!d.data) d.data = d; 
+  d3.select('#info').html( "<h1>" + d.data.name + "</h1>"
+      + "<br>planet diameter: " + d.data.size + " KM"
+      + "<br>planet orbital period: " + d.data.orbital_period + " days"
+      + "<br>planet rotation period: " + d.data.rotation_period + " hours"
+      + "<br>planet climate: " + d.data.climate
+      + "<br>planet terrain: " + d.data.terrain
+  );
+}
+
 
 </script>
 </body>
